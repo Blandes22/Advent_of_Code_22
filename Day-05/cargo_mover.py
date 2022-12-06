@@ -1,22 +1,22 @@
-import re
+import re, copy
 
 class CargoMover:
     def __init__(self, instructions, stack_list):
         self.instructions = instructions
-        self.stack_list = stack_list
+        self.stack_list =  copy.deepcopy(stack_list)
+        self.stack_list_reset = stack_list
+        self.black_magic_expression = r"([\d]+)"
+        self.how_many = 0
+        self.from_where = 0
+        self.to_where = 0
         
     def part_one(self):
         for i in self.instructions:
-            black_magic_expression = r"([\d]+)"
-            temp = re.findall(black_magic_expression, i)
-            how_many = int(temp[0])
-            from_where = int(temp[1]) - 1
-            to_where = int(temp[2]) - 1
-            
-            for x in range(how_many):
-                if not self.stack_list[from_where][0]:
+            self.__update_values(i)
+            for x in range(self.how_many):
+                if not self.stack_list[self.from_where][0]:
                     break
-                self.stack_list[to_where].append(self.stack_list[from_where].pop())
+                self.stack_list[self.to_where].append(self.stack_list[self.from_where].pop())
         
         for i in self.stack_list:
             print(i[-1], end="")
@@ -24,17 +24,19 @@ class CargoMover:
 
 
     def part_two(self):
+        self.stack_list = self.stack_list_reset
         for i in self.instructions:
-            black_magic_expression = r"([\d]+)"
-            values = re.findall(black_magic_expression, i)
-            how_many = int(values[0])
-            from_where = int(values[1]) - 1
-            to_where = int(values[2]) - 1
-
-            temp = self.stack_list[from_where][how_many * -1:]
-            self.stack_list[from_where] = self.stack_list[from_where][:how_many * -1]
-            self.stack_list[to_where] += temp
+            self.__update_values(i)
+            temp = self.stack_list[self.from_where][self.how_many * -1:]
+            self.stack_list[self.from_where] = self.stack_list[self.from_where][:self.how_many * -1]
+            self.stack_list[self.to_where] += temp
 
         for i in self.stack_list:
             print(i[-1], end="")
         print("\n")    
+
+    def __update_values(self, i):
+            values = re.findall(self.black_magic_expression, i)
+            self.how_many = int(values[0])
+            self.from_where = int(values[1]) - 1
+            self.to_where = int(values[2]) - 1
